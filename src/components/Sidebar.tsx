@@ -9,6 +9,8 @@ interface SidebarProps {
   onUploadClick: () => void;
   activeItemId: string | null;
   onSelectItem: (item: CourseItem, id: string) => void;
+  onOpenSettings: () => void;
+  onDeleteCourse: (id: string) => void;
 }
 
 export function Sidebar({
@@ -18,35 +20,57 @@ export function Sidebar({
   onUploadClick,
   activeItemId,
   onSelectItem,
+  onOpenSettings,
+  onDeleteCourse,
 }: SidebarProps) {
   return (
     <aside className="w-80 flex-shrink-0 border-r border-white/5 bg-slate-900/40 backdrop-blur-xl flex flex-col relative z-10">
       <div className="p-6 space-y-6">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <span className="font-bold text-white tracking-tight text-lg">Insight Academy</span>
           </div>
-          <span className="font-bold text-white tracking-tight text-lg">Insight Academy</span>
+          <button 
+            onClick={onOpenSettings}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+            title="Settings"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          </button>
         </div>
 
         {/* Course Selector */}
         <div className="space-y-2">
           <label className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Active Course</label>
-          <div className="relative">
-            <select
-              className="w-full bg-slate-800/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-white"
-              value={currentCourse?.id || ''}
-              onChange={(e) => onSelectCourse(e.target.value)}
-            >
-              <option value="" disabled>Select a course</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-3 pointer-events-none opacity-40">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <select
+                className="w-full bg-slate-800/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-white"
+                value={currentCourse?.id || ''}
+                onChange={(e) => onSelectCourse(e.target.value)}
+              >
+                <option value="" disabled>Select a course</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-3 pointer-events-none opacity-40">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
+              </div>
             </div>
+            {currentCourse && (
+              <button
+                onClick={() => onDeleteCourse(currentCourse.id)}
+                className="flex-shrink-0 p-2.5 bg-slate-800/50 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/10 hover:border-red-500/30 rounded-lg transition-colors"
+                title="Delete current course"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            )}
           </div>
         </div>
 

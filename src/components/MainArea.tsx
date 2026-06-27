@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import ReactPlayer from 'react-player';
 import { CourseItem } from '../types';
 import { FileText, Download, ExternalLink, VideoOff } from 'lucide-react';
+import VideoPlayer from './VideoPlayer';
+import { UserSettings } from '../db';
 
 interface MainAreaProps {
   item: CourseItem | null;
+  settings: UserSettings;
+  onRateChange: (rate: number) => void;
 }
 
-export function MainArea({ item }: MainAreaProps) {
+export function MainArea({ item, settings, onRateChange }: MainAreaProps) {
   if (!item) {
     return (
       <div className="flex-1 flex flex-col relative bg-[#05070a]">
@@ -21,8 +24,6 @@ export function MainArea({ item }: MainAreaProps) {
       </div>
     );
   }
-
-  const Player = ReactPlayer as any;
 
   return (
     <main className="flex-1 flex flex-col relative bg-[#05070a] overflow-hidden">
@@ -40,15 +41,19 @@ export function MainArea({ item }: MainAreaProps) {
         <section className="relative group">
           <div className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative flex items-center justify-center z-10">
             {item.video?.url ? (
-              <Player
-                url={item.video.url}
-                controls
-                width="100%"
-                height="100%"
-                config={{
-                  file: {
-                    hlsOptions: {}
-                  }
+              <VideoPlayer
+                onRateChange={onRateChange}
+                options={{
+                  autoplay: settings.autoplay,
+                  controls: true,
+                  responsive: true,
+                  fluid: true,
+                  playbackRate: settings.playbackRate,
+                  playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+                  sources: [{
+                    src: item.video.url,
+                    type: 'application/x-mpegURL'
+                  }]
                 }}
               />
             ) : (

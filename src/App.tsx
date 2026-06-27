@@ -7,14 +7,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainArea } from './components/MainArea';
 import { Dropzone } from './components/Dropzone';
-import { CourseMeta, getCoursesList, getCourse, saveCourse, getLastActiveCourseId, setLastActiveCourseId } from './db';
+import { CourseMeta, getCoursesList, getCourse, saveCourse, deleteCourse, getLastActiveCourseId, setLastActiveCourseId, getUserSettings, saveUserSettings, UserSettings } from './db';
 import { CourseItem, Course as CourseType } from './types';
+import { Settings } from 'lucide-react';
 
 export default function App() {
   const [coursesList, setCoursesList] = useState<CourseMeta[]>([]);
   const [currentCourse, setCurrentCourse] = useState<CourseType | null>(null);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<CourseItem | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings>({ playbackRate: 1, autoplay: false });
+  const [showSettingsSidebar, setShowSettingsSidebar] = useState(false);
   
   const [showUploader, setShowUploader] = useState(false);
   const [isAppLoading, setIsAppLoading] = useState(true);
@@ -23,6 +26,9 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
+        const settings = await getUserSettings();
+        setUserSettings(settings);
+
         const list = await getCoursesList();
         setCoursesList(list);
 
@@ -114,6 +120,40 @@ export default function App() {
     setActiveItemId(id);
   };
 
+  const handleDeleteCourse = async (id: string) => {
+    await deleteCourse(id);
+    const list = await getCoursesList();
+    setCoursesList(list);
+
+    if (currentCourse?.id === id) {
+      setCurrentCourse(null);
+      setActiveItemId(null);
+      setActiveItem(null);
+      await setLastActiveCourseId(null);
+
+      if (list.length > 0) {
+        const latest = list.sort((a, b) => b.createdAt - a.createdAt)[0];
+        const loadedCourse = await getCourse(latest.id);
+        if (loadedCourse) {
+          setCurrentCourse(loadedCourse);
+          await setLastActiveCourseId(latest.id);
+        }
+      }
+    }
+  };
+
+  const handleUpdateSettings = async (newSettings: Partial<UserSettings>) => {
+    setUserSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      saveUserSettings(updated); // Background async save
+      return updated;
+    });
+  };
+
+  const handleRateChange = (rate: number) => {
+    handleUpdateSettings({ playbackRate: rate });
+  };
+
   if (isAppLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-[#05070a] text-slate-500">Loading...</div>;
   }
@@ -131,15 +171,43 @@ export default function App() {
       
       {!isInitialState && (
         <>
-          <Sidebar 
-            courses={coursesList}
-            currentCourse={currentCourse}
-            onSelectCourse={handleSelectCourse}
-            onUploadClick={() => setShowUploader(true)}
-            activeItemId={activeItemId}
-            onSelectItem={handleSelectItem}
+          {showSettingsSidebar ? (
+            <div className="w-80 flex-shrink-0 border-r border-white/5 bg-slate-900/40 backdrop-blur-xl flex flex-col relative z-10 p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white tracking-tight text-lg">Settings</span>
+                <button onClick={() => setShowSettingsSidebar(false)} className="text-slate-400 hover:text-white transition-colors">
+                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-300">Autoplay Videos</span>
+                  <button 
+                    onClick={() => handleUpdateSettings({ autoplay: !userSettings.autoplay })}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${userSettings.autoplay ? 'bg-blue-600' : 'bg-slate-700'}`}
+                  >
+                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${userSettings.autoplay ? 'translate-x-5' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Sidebar 
+              courses={coursesList}
+              currentCourse={currentCourse}
+              onSelectCourse={handleSelectCourse}
+              onUploadClick={() => setShowUploader(true)}
+              activeItemId={activeItemId}
+              onSelectItem={handleSelectItem}
+              onOpenSettings={() => setShowSettingsSidebar(true)}
+              onDeleteCourse={handleDeleteCourse}
+            />
+          )}
+          <MainArea 
+            item={activeItem} 
+            settings={userSettings}
+            onRateChange={handleRateChange}
           />
-          <MainArea item={activeItem} />
         </>
       )}
       

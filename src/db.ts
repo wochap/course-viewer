@@ -1,7 +1,27 @@
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 import { Course } from './types';
 
 const COURSES_LIST_KEY = 'courses_list';
+
+export interface UserSettings {
+  playbackRate: number;
+  autoplay: boolean;
+}
+
+const SETTINGS_KEY = 'user_settings';
+const DEFAULT_SETTINGS: UserSettings = {
+  playbackRate: 1,
+  autoplay: false,
+};
+
+export async function getUserSettings(): Promise<UserSettings> {
+  const settings = await get<UserSettings>(SETTINGS_KEY);
+  return settings || DEFAULT_SETTINGS;
+}
+
+export async function saveUserSettings(settings: UserSettings): Promise<void> {
+  await set(SETTINGS_KEY, settings);
+}
 
 export interface CourseMeta {
   id: string;
@@ -42,6 +62,17 @@ export async function getLastActiveCourseId(): Promise<string | undefined> {
   return await get<string>('last_active_course');
 }
 
-export async function setLastActiveCourseId(id: string): Promise<void> {
-  await set('last_active_course', id);
+export async function setLastActiveCourseId(id: string | null): Promise<void> {
+  if (id === null) {
+    await del('last_active_course');
+  } else {
+    await set('last_active_course', id);
+  }
+}
+
+export async function deleteCourse(id: string): Promise<void> {
+  await del(`course_${id}`);
+  const list = await getCoursesList();
+  const newList = list.filter(c => c.id !== id);
+  await set(COURSES_LIST_KEY, newList);
 }
