@@ -19,6 +19,7 @@ export default function App() {
   const [userSettings, setUserSettings] = useState<UserSettings>({ playbackRate: 1, autoplay: false });
   const [showSettingsSidebar, setShowSettingsSidebar] = useState(false);
   
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
   const [isAppLoading, setIsAppLoading] = useState(true);
 
@@ -242,17 +243,33 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <Sidebar 
-              courses={coursesList}
-              currentCourse={currentCourse}
-              onSelectCourse={handleSelectCourse}
-              onUploadClick={() => setShowUploader(true)}
-              activeItemId={activeItemId}
-              onSelectItem={handleSelectItem}
-              onOpenSettings={() => setShowSettingsSidebar(true)}
-              onDeleteCourse={handleDeleteCourse}
-              watchedItems={userSettings.watchedItems || {}}
-            />
+            <>
+              {isMobileSidebarOpen && (
+                <div 
+                  className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                />
+              )}
+              <Sidebar 
+                courses={coursesList}
+                currentCourse={currentCourse}
+                onSelectCourse={handleSelectCourse}
+                onUploadClick={() => {
+                  setShowUploader(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                activeItemId={activeItemId}
+                onSelectItem={(item, id) => {
+                  handleSelectItem(item, id);
+                  setIsMobileSidebarOpen(false);
+                }}
+                onOpenSettings={() => setShowSettingsSidebar(true)}
+                onDeleteCourse={handleDeleteCourse}
+                watchedItems={userSettings.watchedItems || {}}
+                isOpen={isMobileSidebarOpen}
+                onClose={() => setIsMobileSidebarOpen(false)}
+              />
+            </>
           )}
           <MainArea 
             item={activeItem} 
@@ -262,6 +279,7 @@ export default function App() {
             onQualityChange={handleQualityChange}
             onTimeUpdate={handleTimeUpdate}
             onToggleWatched={handleToggleWatched}
+            onToggleSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
           />
         </>
       )}

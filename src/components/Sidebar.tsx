@@ -12,6 +12,8 @@ interface SidebarProps {
   onOpenSettings: () => void;
   onDeleteCourse: (id: string) => void;
   watchedItems: Record<string, boolean>;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function Sidebar({
@@ -24,9 +26,14 @@ export function Sidebar({
   onOpenSettings,
   onDeleteCourse,
   watchedItems,
+  isOpen,
+  onClose,
 }: SidebarProps) {
   return (
-    <aside className="w-80 flex-shrink-0 border-r border-white/5 bg-slate-900/40 backdrop-blur-xl flex flex-col relative z-10">
+    <aside className={cn(
+      "w-80 flex-shrink-0 border-r border-white/5 bg-slate-900/95 md:bg-slate-900/40 backdrop-blur-xl flex flex-col z-40 fixed inset-y-0 left-0 md:relative md:translate-x-0 transition-transform duration-300",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
       <div className="p-6 space-y-6">
         {/* Brand */}
         <div className="flex items-center justify-between">
@@ -36,13 +43,24 @@ export function Sidebar({
             </div>
             <span className="font-bold text-white tracking-tight text-lg">Insight Academy</span>
           </div>
-          <button 
-            onClick={onOpenSettings}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-            title="Settings"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={onOpenSettings}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+              title="Settings"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+            {onClose && (
+              <button 
+                onClick={onClose}
+                className="md:hidden p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                title="Close sidebar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Course Selector */}
@@ -116,22 +134,39 @@ function ModuleNode({ module, mIdx, activeItemId, onSelectItem, watchedItems }: 
   onSelectItem: (item: CourseItem, id: string) => void;
   watchedItems: Record<string, boolean>;
 }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
     <div className="mb-6">
-      <h4 className="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 line-clamp-2">{module.title}</h4>
-      <div className="space-y-4">
-        {module.sections.map((section, sIdx) => (
-          <SectionNode 
-            key={`s-${sIdx}`} 
-            section={section} 
-            mIdx={mIdx} 
-            sIdx={sIdx}
-            activeItemId={activeItemId}
-            onSelectItem={onSelectItem}
-            watchedItems={watchedItems}
-          />
-        ))}
+      <div 
+        className="px-2 flex items-center justify-between cursor-pointer group mb-3"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest line-clamp-2 group-hover:text-slate-300 transition-colors">{module.title}</h4>
+        <svg 
+          className={cn("w-3 h-3 text-slate-500 transition-transform", isExpanded ? "rotate-180" : "rotate-0")} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
+      {isExpanded && (
+        <div className="space-y-4">
+          {module.sections.map((section, sIdx) => (
+            <SectionNode 
+              key={`s-${sIdx}`} 
+              section={section} 
+              mIdx={mIdx} 
+              sIdx={sIdx}
+              activeItemId={activeItemId}
+              onSelectItem={onSelectItem}
+              watchedItems={watchedItems}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -144,10 +179,25 @@ function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem, watchedI
   onSelectItem: (item: CourseItem, id: string) => void;
   watchedItems: Record<string, boolean>;
 }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
     <div className="space-y-1">
-      <div className="px-2 py-1 text-xs font-semibold text-blue-400 opacity-80">{section.title}</div>
-      {section.items.map((item, iIdx) => {
+      <div 
+        className="px-2 py-1 flex items-center justify-between cursor-pointer group"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="text-xs font-semibold text-blue-400 opacity-80 group-hover:opacity-100 transition-opacity">{section.title}</div>
+        <svg 
+          className={cn("w-3 h-3 text-blue-400/50 transition-transform", isExpanded ? "rotate-180" : "rotate-0")} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      {isExpanded && section.items.map((item, iIdx) => {
         const itemId = `${mIdx}-${sIdx}-${iIdx}`;
         const isActive = activeItemId === itemId;
         const isWatched = watchedItems[itemId];

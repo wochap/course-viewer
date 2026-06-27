@@ -66,7 +66,7 @@ export function Dropzone({ onFileDrop, isInitial = false }: DropzoneProps) {
           <input 
             type="file" 
             className="hidden" 
-            accept=".json,application/json" 
+            accept="application/json" 
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
                 onFileDrop(e.target.files[0]);

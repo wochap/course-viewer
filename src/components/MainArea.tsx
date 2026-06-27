@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CourseItem } from '../types';
-import { FileText, Download, ExternalLink, VideoOff } from 'lucide-react';
+import { FileText, Download, ExternalLink, VideoOff, Menu } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import { UserSettings } from '../db';
 import { cn } from '../utils';
@@ -13,12 +13,20 @@ interface MainAreaProps {
   onQualityChange?: (quality: string) => void;
   onTimeUpdate?: (itemId: string, time: number) => void;
   onToggleWatched?: (itemId: string) => void;
+  onToggleSidebar?: () => void;
 }
 
-export function MainArea({ item, itemId, settings, onRateChange, onQualityChange, onTimeUpdate, onToggleWatched }: MainAreaProps) {
+export function MainArea({ item, itemId, settings, onRateChange, onQualityChange, onTimeUpdate, onToggleWatched, onToggleSidebar }: MainAreaProps) {
   if (!item) {
     return (
       <div className="flex-1 flex flex-col relative bg-[#05070a]">
+        <div className="absolute top-0 left-0 w-full h-16 flex items-center px-4 md:hidden z-20">
+          {onToggleSidebar && (
+            <button onClick={onToggleSidebar} className="p-2 -ml-2 text-slate-400 hover:text-slate-200">
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+        </div>
         <div className="flex-1 flex items-center justify-center text-slate-500 z-10">
           <div className="text-center">
             <PlayCirclePlaceholder className="w-16 h-16 mx-auto mb-4 opacity-20" />
@@ -35,10 +43,15 @@ export function MainArea({ item, itemId, settings, onRateChange, onQualityChange
   return (
     <main className="flex-1 flex flex-col relative bg-[#05070a] overflow-hidden">
       {/* Header / Breadcrumbs */}
-      <header className="h-16 flex items-center px-8 border-b border-white/5 justify-between shrink-0 relative z-10">
+      <header className="h-16 flex items-center px-4 md:px-8 border-b border-white/5 justify-between shrink-0 relative z-10">
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-500 line-clamp-1">Insight Academy</span>
-          <svg className="w-3 h-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+          {onToggleSidebar && (
+            <button onClick={onToggleSidebar} className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-200">
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <span className="text-slate-500 line-clamp-1 hidden md:inline">Insight Academy</span>
+          <svg className="w-3 h-3 text-slate-700 hidden md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
           <span className="text-blue-400 line-clamp-1">{item.title}</span>
         </div>
         {itemId && onToggleWatched && (
