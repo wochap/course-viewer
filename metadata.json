@@ -1,0 +1,6 @@
+{
+  "name": "Course Viewer",
+  "description": "A local web application to view courses from JSON files.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
