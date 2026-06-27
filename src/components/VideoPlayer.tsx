@@ -1,5 +1,5 @@
-import videojs from 'video.js';
 import React, { useEffect, useRef } from 'react';
+import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import 'videojs-sprite-thumbnails';
 import 'videojs-contrib-quality-levels';
