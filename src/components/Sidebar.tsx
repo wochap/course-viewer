@@ -11,6 +11,7 @@ interface SidebarProps {
   onSelectItem: (item: CourseItem, id: string) => void;
   onOpenSettings: () => void;
   onDeleteCourse: (id: string) => void;
+  watchedItems: Record<string, boolean>;
 }
 
 export function Sidebar({
@@ -22,6 +23,7 @@ export function Sidebar({
   onSelectItem,
   onOpenSettings,
   onDeleteCourse,
+  watchedItems,
 }: SidebarProps) {
   return (
     <aside className="w-80 flex-shrink-0 border-r border-white/5 bg-slate-900/40 backdrop-blur-xl flex flex-col relative z-10">
@@ -93,6 +95,7 @@ export function Sidebar({
                 mIdx={mIdx}
                 activeItemId={activeItemId}
                 onSelectItem={onSelectItem}
+                watchedItems={watchedItems}
               />
             ))}
           </div>
@@ -106,11 +109,12 @@ export function Sidebar({
   );
 }
 
-function ModuleNode({ module, mIdx, activeItemId, onSelectItem }: { 
+function ModuleNode({ module, mIdx, activeItemId, onSelectItem, watchedItems }: { 
   module: CourseModule; 
   mIdx: number;
   activeItemId: string | null;
   onSelectItem: (item: CourseItem, id: string) => void;
+  watchedItems: Record<string, boolean>;
 }) {
   return (
     <div className="mb-6">
@@ -124,6 +128,7 @@ function ModuleNode({ module, mIdx, activeItemId, onSelectItem }: {
             sIdx={sIdx}
             activeItemId={activeItemId}
             onSelectItem={onSelectItem}
+            watchedItems={watchedItems}
           />
         ))}
       </div>
@@ -131,12 +136,13 @@ function ModuleNode({ module, mIdx, activeItemId, onSelectItem }: {
   );
 }
 
-function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem }: { 
+function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem, watchedItems }: { 
   section: CourseSection;
   mIdx: number;
   sIdx: number;
   activeItemId: string | null;
   onSelectItem: (item: CourseItem, id: string) => void;
+  watchedItems: Record<string, boolean>;
 }) {
   return (
     <div className="space-y-1">
@@ -144,6 +150,7 @@ function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem }: {
       {section.items.map((item, iIdx) => {
         const itemId = `${mIdx}-${sIdx}-${iIdx}`;
         const isActive = activeItemId === itemId;
+        const isWatched = watchedItems[itemId];
         return (
           <div
             key={itemId}
@@ -161,7 +168,7 @@ function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem }: {
             )}>
               {item.title}
             </p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center justify-between mt-1">
               <span className={cn(
                 "text-[10px] flex items-center gap-1",
                 isActive ? "text-blue-300" : "text-slate-500"
@@ -173,6 +180,12 @@ function SectionNode({ section, mIdx, sIdx, activeItemId, onSelectItem }: {
                 )}
                 {item.video ? "Video" : "Document"}
               </span>
+              {isWatched && (
+                <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                  Viewed
+                </span>
+              )}
             </div>
           </div>
         )

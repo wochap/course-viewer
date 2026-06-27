@@ -22,6 +22,28 @@ export default function App() {
   const [showUploader, setShowUploader] = useState(false);
   const [isAppLoading, setIsAppLoading] = useState(true);
 
+  const selectFirstUnwatchedVideo = useCallback((course: CourseType, settings: UserSettings) => {
+    if (!course || !course.modules) return;
+
+    for (let mIdx = 0; mIdx < course.modules.length; mIdx++) {
+      const module = course.modules[mIdx];
+      if (!module.sections) continue;
+      for (let sIdx = 0; sIdx < module.sections.length; sIdx++) {
+        const section = module.sections[sIdx];
+        if (!section.items) continue;
+        for (let iIdx = 0; iIdx < section.items.length; iIdx++) {
+          const item = section.items[iIdx];
+          const itemId = `${mIdx}-${sIdx}-${iIdx}`;
+          if (item.video && !settings.watchedItems?.[itemId]) {
+            setActiveItemId(itemId);
+            setActiveItem(item);
+            return;
+          }
+        }
+      }
+    }
+  }, []);
+
   // Initialize App
   useEffect(() => {
     const initApp = async () => {
@@ -38,6 +60,7 @@ export default function App() {
           const loadedCourse = await getCourse(lastId);
           if (loadedCourse) {
             setCurrentCourse(loadedCourse);
+            selectFirstUnwatchedVideo(loadedCourse, settings);
           }
         } else if (list.length > 0) {
           // Fallback to latest uploaded
@@ -46,6 +69,7 @@ export default function App() {
           if (loadedCourse) {
             setCurrentCourse(loadedCourse);
             await setLastActiveCourseId(latest.id);
+            selectFirstUnwatchedVideo(loadedCourse, settings);
           }
         }
       } catch (error) {
@@ -55,7 +79,7 @@ export default function App() {
       }
     };
     initApp();
-  }, []);
+  }, [selectFirstUnwatchedVideo]);
 
   // Handle global drag events to show dropzone
   useEffect(() => {
@@ -76,6 +100,7 @@ export default function App() {
       setActiveItemId(null);
       setActiveItem(null);
       await setLastActiveCourseId(id);
+      selectFirstUnwatchedVideo(loadedCourse, userSettings);
     }
   };
 
@@ -108,6 +133,7 @@ export default function App() {
       setActiveItemId(null);
       setActiveItem(null);
       await setLastActiveCourseId(newCourse.id);
+      selectFirstUnwatchedVideo(newCourse, userSettings);
       
     } catch (err) {
       console.error(err);
@@ -152,6 +178,30 @@ export default function App() {
 
   const handleRateChange = (rate: number) => {
     handleUpdateSettings({ playbackRate: rate });
+  };
+
+  const handleQualityChange = (quality: string) => {
+    handleUpdateSettings({ videoQuality: quality });
+  };
+
+  const handleTimeUpdate = (itemId: string, time: number) => {
+    setUserSettings(prev => {
+      const videoProgress = { ...(prev.videoProgress || {}) };
+      videoProgress[itemId] = time;
+      const updated = { ...prev, videoProgress };
+      saveUserSettings(updated);
+      return updated;
+    });
+  };
+
+  const handleToggleWatched = (itemId: string) => {
+    setUserSettings(prev => {
+      const watchedItems = { ...(prev.watchedItems || {}) };
+      watchedItems[itemId] = !watchedItems[itemId];
+      const updated = { ...prev, watchedItems };
+      saveUserSettings(updated);
+      return updated;
+    });
   };
 
   if (isAppLoading) {
@@ -201,12 +251,17 @@ export default function App() {
               onSelectItem={handleSelectItem}
               onOpenSettings={() => setShowSettingsSidebar(true)}
               onDeleteCourse={handleDeleteCourse}
+              watchedItems={userSettings.watchedItems || {}}
             />
           )}
           <MainArea 
             item={activeItem} 
+            itemId={activeItemId}
             settings={userSettings}
             onRateChange={handleRateChange}
+            onQualityChange={handleQualityChange}
+            onTimeUpdate={handleTimeUpdate}
+            onToggleWatched={handleToggleWatched}
           />
         </>
       )}

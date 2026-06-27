@@ -3,14 +3,19 @@ import { CourseItem } from '../types';
 import { FileText, Download, ExternalLink, VideoOff } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import { UserSettings } from '../db';
+import { cn } from '../utils';
 
 interface MainAreaProps {
   item: CourseItem | null;
+  itemId?: string | null;
   settings: UserSettings;
   onRateChange: (rate: number) => void;
+  onQualityChange?: (quality: string) => void;
+  onTimeUpdate?: (itemId: string, time: number) => void;
+  onToggleWatched?: (itemId: string) => void;
 }
 
-export function MainArea({ item, settings, onRateChange }: MainAreaProps) {
+export function MainArea({ item, itemId, settings, onRateChange, onQualityChange, onTimeUpdate, onToggleWatched }: MainAreaProps) {
   if (!item) {
     return (
       <div className="flex-1 flex flex-col relative bg-[#05070a]">
@@ -25,6 +30,8 @@ export function MainArea({ item, settings, onRateChange }: MainAreaProps) {
     );
   }
 
+  const isWatched = itemId && settings.watchedItems?.[itemId];
+
   return (
     <main className="flex-1 flex flex-col relative bg-[#05070a] overflow-hidden">
       {/* Header / Breadcrumbs */}
@@ -34,6 +41,22 @@ export function MainArea({ item, settings, onRateChange }: MainAreaProps) {
           <svg className="w-3 h-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
           <span className="text-blue-400 line-clamp-1">{item.title}</span>
         </div>
+        {itemId && onToggleWatched && (
+          <button
+            onClick={() => onToggleWatched(itemId)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors border",
+              isWatched
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:text-slate-200"
+            )}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {isWatched ? "Watched" : "Mark as Watched"}
+          </button>
+        )}
       </header>
 
       <div className="flex-1 p-8 space-y-8 overflow-y-auto relative z-10">
@@ -43,11 +66,15 @@ export function MainArea({ item, settings, onRateChange }: MainAreaProps) {
             {item.video?.url ? (
               <VideoPlayer
                 onRateChange={onRateChange}
+                onQualityChange={onQualityChange}
+                onTimeUpdate={(time) => onTimeUpdate && itemId && onTimeUpdate(itemId, time)}
                 options={{
                   autoplay: settings.autoplay,
                   controls: true,
                   responsive: true,
                   fluid: true,
+                  videoQuality: settings.videoQuality,
+                  startTime: (itemId && settings.videoProgress?.[itemId]) || 0,
                   playbackRate: settings.playbackRate,
                   playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
                   sources: [{

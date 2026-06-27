@@ -6,12 +6,18 @@ const COURSES_LIST_KEY = 'courses_list';
 export interface UserSettings {
   playbackRate: number;
   autoplay: boolean;
+  videoQuality?: string;
+  videoProgress?: Record<string, number>;
+  watchedItems?: Record<string, boolean>;
 }
 
 const SETTINGS_KEY = 'user_settings';
 const DEFAULT_SETTINGS: UserSettings = {
   playbackRate: 1,
   autoplay: false,
+  videoQuality: 'Auto',
+  videoProgress: {},
+  watchedItems: {},
 };
 
 export async function getUserSettings(): Promise<UserSettings> {
